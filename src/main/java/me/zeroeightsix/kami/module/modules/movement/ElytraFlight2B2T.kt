@@ -1,45 +1,4 @@
-package me.zeroeightsix.kami.module.modules.movement
-
-import me.zeroeightsix.kami.event.SafeClientEvent
-import me.zeroeightsix.kami.event.events.ConnectionEvent
-import me.zeroeightsix.kami.event.events.PacketEvent
-import me.zeroeightsix.kami.event.events.PlayerTravelEvent
-import me.zeroeightsix.kami.mixin.extension.*
-import me.zeroeightsix.kami.module.Category
-import me.zeroeightsix.kami.module.Module
-import me.zeroeightsix.kami.util.MovementUtils.isInputting
-import me.zeroeightsix.kami.util.MovementUtils.speed
-import me.zeroeightsix.kami.util.WorldUtils.getGroundPos
-import me.zeroeightsix.kami.util.text.MessageSendHelper.sendChatMessage
-import me.zeroeightsix.kami.util.threads.BackgroundScope
-import me.zeroeightsix.kami.util.threads.onMainThreadSafe
-import me.zeroeightsix.kami.util.threads.safeListener
-import net.minecraft.init.Items
-import net.minecraft.network.play.client.CPacketConfirmTeleport
-import net.minecraft.network.play.client.CPacketEntityAction
-import net.minecraft.network.play.client.CPacketPlayer
-import net.minecraft.network.play.server.SPacketEntityMetadata
-import net.minecraft.network.play.server.SPacketPlayerPosLook
-import net.minecraft.util.math.Vec2f
-import net.minecraft.util.math.Vec3d
-import net.minecraftforge.fml.common.gameevent.TickEvent
-import kotlin.math.cos
-import kotlin.math.sin
-
-internal object ElytraFlight2B2T : Module(
-    name = "ElytraFlight2B2T",
-    description = "Allows high speed infinite Elytra flight with no durability usage on 2b2t",
-    category = Category.MOVEMENT
-) {
-    private val accelerateSpeed = setting("Accelerate", 0.22f, 0.0f..1.0f, 0.01f)
-    private val maxVelocity = setting("MaxVelocity", 9.90f, 1.0f..10.0f, 0.01f)
-    private val descendSpeed = setting("Descend", 0.1, 0.01..1.0, 0.01)
-    private val idleSpeed = setting("IdleSpeed", 1000.00f, 400.0f..10000f, 1f)
-    private val idleRadius = setting("IdleRadius", 0.05f, 0.0f..0.25f, 0.001f)
-    private val minIdleVelocity = setting("MinIdleVelocity", 0.013f, 0.0f..0.25f, 0.001f)
-    private val showDebug = setting("ShowDebug", false)
-
-    private var lastPos = Vec3d(0.0, -1.0, 0.0)
+r lastPos = Vec3d(0.0, -1.0, 0.0)
     private var rotation = Vec2f(0.0F, 0.0F)
     private var lastRotation = Vec2f(0.0F, 0.0F)
 
@@ -52,8 +11,8 @@ internal object ElytraFlight2B2T : Module(
     private var isJumpStart = false
 
     /* Emergency teleport packet info */
-    private var teleportPosition = Vec3d.ZERO
-    private var teleportRotation = Vec2f.ZERO
+    private var teleportPosition = Vec3d(0.0, -1.0, 0.0)
+    private var teleportRotation = Vec2f(0.0F, 0.0F)
 
     private enum class MovementState {
         NOT_STARTED, IDLE, MOVING
@@ -84,7 +43,7 @@ internal object ElytraFlight2B2T : Module(
             }
 
             /* If we are not wearing an elytra then reset */
-            if (player.chestSlot.stack.item != Items.ELYTRA && started != MovementState.NOT_STARTED) {
+            if (player.inventory.armorInventory[2].item != Items.ELYTRA && started != MovementState.NOT_STARTED) {
                 reset()
                 return@safeListener
             }
